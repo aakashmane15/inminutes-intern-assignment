@@ -34,7 +34,7 @@ app.use("/api", menuRoutes);
 app.use("/api", orderRoutes);
 
 app.use((req, res) => {
-  resp.status(404).json({
+  res.status(404).json({
     error: "Route not found.",
   });
 });
