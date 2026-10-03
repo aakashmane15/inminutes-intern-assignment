@@ -15,7 +15,7 @@ router.get("/menu", async (req, res) => {
       select: {
         id: true,
         name: true,
-        description,
+        description: true,
         pricePaise: true,
         stock: true,
         version: true,
