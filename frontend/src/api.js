@@ -33,3 +33,26 @@ export async function submitOrder(idempotencyKey, items) {
 
   return readJson(response);
 }
+
+export async function getOrders() {
+  const response = await fetch("/api/orders");
+  return readJson(response);
+}
+
+export async function updateOrderStatus(orderId, nextStatus, expectedVersion) {
+  const response = await fetch(
+    `/api/orders/${encodeURIComponent(orderId)}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nextStatus,
+        expectedVersion,
+      }),
+    },
+  );
+
+  return readJson(response);
+}
