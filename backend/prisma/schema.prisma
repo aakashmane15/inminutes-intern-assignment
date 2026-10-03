@@ -13,3 +13,52 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum OrderStatus {
+  NEW
+  COOKING
+  READY
+  PICKED_UP
+}
+
+model MenuItem {
+  id          String      @id
+  name        String
+  description String?
+  pricePaise  Int         @map("price_paise")
+  stock       Int         @default(0)
+  active      Boolean     @default(true)
+  version     Int         @default(0)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  orderItems  OrderItem[]
+
+  @@map("menu_items")
+}
+
+model Order {
+  id             String      @id @default(uuid()) @db.Uuid
+  idempotencyKey String      @unique @map("idempotency_key")
+  status         OrderStatus @default(NEW)
+  version        Int         @default(1)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  items          OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          Int    @id @default(autoincrement())
+  orderId     String @map("order_id") @db.Uuid
+  menuItemId  String @map("menu_item_id")
+  nameAtOrder String @map("name_at_order")
+  priceCents  Int    @map("price_cents")
+  quantity    Int
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, menuItemId])
+  @@map("order_items")
+}
