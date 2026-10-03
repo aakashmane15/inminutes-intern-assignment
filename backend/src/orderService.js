@@ -182,3 +182,98 @@ export async function placeOrder({ idempotencyKey, items }) {
     throw error;
   }
 }
+
+const nextStatusByCurrentStatus = {
+  NEW: "COOKING",
+  COOKING: "READY",
+  READY: "PICKED_UP",
+  PICKED_UP: null,
+};
+
+export async function advanceOrder({ orderId, nextStatus, expectedVersion }) {
+  return prisma.$transaction(async (tx) => {
+    const currentOrder = await tx.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      select: {
+        status: true,
+        version: true,
+      },
+    });
+
+    if (!currentOrder) {
+      throw new OrderError(404, "ORDER_NOT_FOUND", "Order not found.");
+    }
+
+    if (currentOrder.version !== expectedVersion) {
+      throw new OrderError(
+        409,
+        "STALE_ORDER",
+        "This order changed on another screen. Refresh it and try again.",
+        {
+          currentStatus: currentOrder.status,
+          currentVersion: currentOrder.version,
+        },
+      );
+    }
+
+    const allowedNextStatus = nextStatusByCurrentStatus[currentOrder.status];
+
+    if (allowedNextStatus !== nextStatus) {
+      throw new OrderError(
+        409,
+        "INVALID_TRANSITION",
+        `An order in ${currentOrder.status} cannot move to ${nextStatus}.`,
+        {
+          currentStatus: currentOrder.status,
+          currentVersion: currentOrder.version,
+        },
+      );
+    }
+
+    const updateResult = await tx.order.updateMany({
+      where: {
+        id: orderId,
+        status: currentOrder.status,
+        version: expectedVersion,
+      },
+      data: {
+        status: nextStatus,
+        version: {
+          increment: 1,
+        },
+        updatedAt: new Date(),
+      },
+    });
+
+    if (updateResult.count !== 1) {
+      const latestOrder = await tx.order.findUnique({
+        where: {
+          id: orderId,
+        },
+        select: {
+          status: true,
+          version: true,
+        },
+      });
+
+      throw new OrderError(
+        409,
+        "STALE_ORDER",
+        "This order changed on another screen. Refresh it and try again.",
+        {
+          currentStatus: latestOrder?.status ?? currentOrder.status,
+          currentVersion: latestOrder?.version ?? currentOrder.version,
+        },
+      );
+    }
+
+    return tx.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      select: orderSelect,
+    });
+  });
+}
