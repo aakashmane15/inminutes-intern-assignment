@@ -5,6 +5,7 @@ import { WebSocketServer } from "ws";
 import { prisma } from "./db.js";
 import menuRoutes from "./menuRoutes.js";
 import orderRoutes from "./orderRoutes.js";
+import { attachWebSocketServer } from "./realtime.js";
 
 const app = express();
 
@@ -41,18 +42,7 @@ app.use((req, res) => {
 
 const server = createServer(app);
 
-const webSocketServer = new WebSocketServer({
-  server,
-  path: "/ws",
-});
-
-webSocketServer.on("connection", (socket) => {
-  socket.send(
-    JSON.stringify({
-      type: "connected",
-    }),
-  );
-});
+attachWebSocketServer(server);
 
 const port = Number(process.env.PORT ?? 3000);
 
