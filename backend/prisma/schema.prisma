@@ -53,7 +53,7 @@ model OrderItem {
   orderId     String @map("order_id") @db.Uuid
   menuItemId  String @map("menu_item_id")
   nameAtOrder String @map("name_at_order")
-  priceCents  Int    @map("price_cents")
+  pricePaise  Int    @map("price_paise")
   quantity    Int
 
   order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)

@@ -22,7 +22,7 @@ const orderSelect = {
   },
 };
 
-router.get("/orders", async (_request, response) => {
+router.get("/orders", async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       orderBy: {
@@ -31,21 +31,21 @@ router.get("/orders", async (_request, response) => {
       select: orderSelect,
     });
 
-    response.json(orders);
+    res.json(orders);
   } catch (error) {
     console.error("Could not load orders:", error);
 
-    response.status(500).json({
+    res.status(500).json({
       error: "Could not load orders.",
     });
   }
 });
 
-router.get("/orders/:id", async (request, response) => {
-  const { id } = request.params;
+router.get("/orders/:id", async (req, res) => {
+  const { id } = req.params;
 
   if (!uuidPattern.test(id)) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: "Order ID must be a valid UUID.",
     });
   }
@@ -59,16 +59,16 @@ router.get("/orders/:id", async (request, response) => {
     });
 
     if (!order) {
-      return response.status(404).json({
+      return res.status(404).json({
         error: "Order not found.",
       });
     }
 
-    response.json(order);
+    res.json(order);
   } catch (error) {
     console.error("Could not load order:", error);
 
-    response.status(500).json({
+    res.status(500).json({
       error: "Could not load order.",
     });
   }
