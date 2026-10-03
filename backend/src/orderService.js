@@ -96,7 +96,7 @@ export async function placeOrder({ idempotencyKey, items }) {
           RETURNING
             "id",
             "name",
-            "price_cents",
+            "price_paise",
             "stock",
             "version"
         `;
@@ -142,7 +142,7 @@ export async function placeOrder({ idempotencyKey, items }) {
             orderId: newOrder.id,
             menuItemId: updatedItem.id,
             nameAtOrder: updatedItem.name,
-            pricePaise: updatedItem.price_cents,
+            pricePaise: updatedItem.price_paise,
             quantity: item.quantity,
           },
         });
