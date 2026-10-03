@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import { createServer } from "note:http";
+import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
 
 const app = express();
