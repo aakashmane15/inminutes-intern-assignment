@@ -18,7 +18,7 @@ const orderSelect = {
     select: {
       menuItemId: true,
       nameAtOrder: true,
-      priceCents: true,
+      pricePaise: true,
       quantity: true,
     },
   },

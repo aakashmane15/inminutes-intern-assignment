@@ -10,7 +10,8 @@
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "test:race": "node scripts/race-check.js"
   },
   "keywords": [],
   "author": "",
