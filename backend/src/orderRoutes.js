@@ -68,19 +68,19 @@ function normalizeItems(lines) {
   };
 }
 
-router.post("/orders", async (request, response) => {
-  const idempotencyKey = request.get("Idempotency-Key");
+router.post("/orders", async (req, res) => {
+  const idempotencyKey = req.get("Idempotency-Key");
 
   if (!idempotencyKey || !uuidPattern.test(idempotencyKey)) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: "Send a valid UUID in the Idempotency-Key header.",
     });
   }
 
-  const normalized = normalizeItems(request.body?.items);
+  const normalized = normalizeItems(req.body?.items);
 
   if (normalized.error) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: normalized.error,
     });
   }
@@ -91,10 +91,10 @@ router.post("/orders", async (request, response) => {
       items: normalized.items,
     });
 
-    response.status(result.replayed ? 200 : 201).json(result);
+    res.status(result.replayed ? 200 : 201).json(result);
   } catch (error) {
     if (error instanceof OrderError) {
-      return response.status(error.status).json({
+      return res.status(error.status).json({
         code: error.code,
         error: error.message,
         ...error.details,
@@ -103,13 +103,13 @@ router.post("/orders", async (request, response) => {
 
     console.error("Could not place order:", error);
 
-    response.status(500).json({
+    res.status(500).json({
       error: "Could not place order.",
     });
   }
 });
 
-router.get("/orders", async (_request, response) => {
+router.get("/orders", async (_req, res) => {
   try {
     const orders = await prisma.order.findMany({
       orderBy: {
@@ -118,21 +118,21 @@ router.get("/orders", async (_request, response) => {
       select: orderSelect,
     });
 
-    response.json(orders);
+    res.json(orders);
   } catch (error) {
     console.error("Could not load orders:", error);
 
-    response.status(500).json({
+    res.status(500).json({
       error: "Could not load orders.",
     });
   }
 });
 
-router.get("/orders/:id", async (request, response) => {
-  const { id } = request.params;
+router.get("/orders/:id", async (req, res) => {
+  const { id } = req.params;
 
   if (!uuidPattern.test(id)) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: "Order ID must be a valid UUID.",
     });
   }
@@ -146,16 +146,16 @@ router.get("/orders/:id", async (request, response) => {
     });
 
     if (!order) {
-      return response.status(404).json({
+      return res.status(404).json({
         error: "Order not found.",
       });
     }
 
-    response.json(order);
+    res.json(order);
   } catch (error) {
     console.error("Could not load order:", error);
 
-    response.status(500).json({
+    res.status(500).json({
       error: "Could not load order.",
     });
   }
