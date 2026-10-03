@@ -3,29 +3,40 @@ import express from "express";
 import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
 import { prisma } from "./db.js";
+import menuRoutes from "./menuRoutes.js";
+import orderRoutes from "./orderRoutes.js";
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/api/health", async (_request, response) => {
+app.get("/api/health", async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
 
-    response.json({
+    res.json({
       ok: true,
-      service: "live-kitchen-api",
+      service: "inminutes-assignment",
       database: "connected",
     });
   } catch (error) {
     console.error("Database health check failed:", error);
 
-    response.status(503).json({
+    res.status(503).json({
       ok: false,
-      service: "live-kitchen-api",
+      service: "inminutes-assignment",
       database: "disconnected",
     });
   }
+});
+
+app.use("/api", menuRoutes);
+app.use("/api", orderRoutes);
+
+app.use((req, res) => {
+  resp.status(404).json({
+    error: "Route not found.",
+  });
 });
 
 const server = createServer(app);
